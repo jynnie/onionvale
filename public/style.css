@@ -1,0 +1,251 @@
+@import url("https://fonts.googleapis.com/css?family=Sunflower:300");
+
+:root {
+  --grey: #ddd;
+
+  --font: "Sunflower";
+}
+
+::selection {
+  background: #0fffcf;
+}
+
+body {
+  --black: #404040;
+  --white: #fff;
+
+  font-family: var(--font) !important;
+  color: var(--black);
+  max-width: 850px;
+  width: 100vw;
+  padding: 20px 10px;
+  margin: auto;
+  background: var(--white);
+}
+
+body.darkness {
+  --black: #fff;
+  --white: #404040;
+}
+
+footer {
+  position: fixed;
+  bottom: 1em;
+  display: flex;
+  width: 100vw;
+  max-width: 850px;
+  justify-content: space-between;
+  font-size: 0.9em;
+}
+
+footer p {
+  margin: 0;
+}
+
+footer ul li {
+  display: inline-block;
+  margin-left: 1em;
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+  -webkit-margin: 0;
+  -webkit-padding: 0;
+}
+
+li {
+  list-style-type: none;
+}
+
+a {
+  cursor: pointer;
+  color: var(--black);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.game-wrapper {
+  display: grid;
+  grid-column-gap: 20px;
+  grid-template-columns: 200px auto 200px;
+}
+
+.sidebar {
+  /* margin-top: 1.5em; */
+}
+
+.side-wrapper {
+  border: 1px solid var(--black);
+  margin: 10px 0 20px;
+  position: relative;
+  padding: 5px;
+}
+
+.side-title {
+  font-weight: bold;
+  margin-bottom: 0.5em;
+}
+
+#stats:before {
+  content: "character stats";
+  background: var(--white);
+  position: absolute;
+  left: 4px;
+  top: -14px;
+}
+
+#items:before {
+  content: "items";
+  background: var(--white);
+  position: absolute;
+  left: 4px;
+  top: -14px;
+}
+
+.stat,
+.item {
+  display: flex;
+  justify-content: space-between;
+}
+
+span.fade {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.title {
+  margin-bottom: 1em;
+  font-size: 1.2em;
+  font-weight: bold;
+  font-style: italic;
+}
+
+.log-wrapper {
+  width: 100%;
+  height: 400px;
+  margin-bottom: 10px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  overflow-y: auto;
+}
+
+.logs {
+  height: 400px;
+  overflow-y: auto;
+  width: 100%;
+}
+
+.logs .log.error {
+  color: orangered;
+}
+
+.logs .log.update {
+  font-style: italic;
+  opacity: 0.7;
+}
+
+.logs .log.game {
+  /* color: #778899; */
+  opacity: 0.7;
+}
+
+.logs .log.player {
+  position: relative;
+  padding-left: 14px;
+  margin-top: 1em;
+}
+
+.logs .log.player:before {
+  content: ">";
+  position: absolute;
+  left: 0px;
+}
+
+.player-input {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+}
+
+.player-input input {
+  font-family: var(--font);
+  font-size: 0.9em;
+}
+
+.player-input input[type="text"] {
+  position: absolute;
+  width: calc(100% - 0.3em);
+  padding: 0.2em 0 0.2em 0.3em;
+  border: none;
+  background: none;
+  color: var(--white);
+  z-index: 9;
+}
+
+.player-input input[type="text"]:focus {
+  outline: none;
+  border-bottom-color: var(--black);
+}
+
+.player-input input[type="text"]::placeholder {
+  color: var(--white);
+  opacity: 0.6;
+}
+
+.player-input .input-wrapper {
+  position: relative;
+  height: 1.3em;
+  width: calc(100% - 70px - 0.3em);
+  padding: 0.2em 0.3em;
+  margin-right: 0.3em;
+}
+
+.player-input .input-background {
+  height: calc(100%);
+  width: calc(100%);
+  background: var(--black);
+  position: absolute;
+  top: 0;
+  left: 0;
+  animation: wipe 0.5s ease-in-out;
+}
+
+.player-input input[type="submit"] {
+  background: none;
+  color: var(--black);
+  border-radius: 0;
+  border: 1px solid var(--black);
+  cursor: pointer;
+}
+
+.player-input input[type="submit"]:active {
+  background: var(--grey);
+  outline: none;
+}
+
+.player-input input[type="submit"]:focus {
+  outline: none;
+}
+
+@keyframes wipe {
+  from {
+    width: 0;
+  }
+  to {
+    width: calc(100%);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0.1;
+  }
+  to {
+    opacity: 1;
+  }
+}

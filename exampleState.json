@@ -1,0 +1,21 @@
+{
+  "logs": [
+    {
+      "time": 1,
+      "type": "game",
+      "value": "the adventure continues..."
+    }
+  ],
+  "stats": {
+    "health": {
+      "maxValue": 10,
+      "nowValue": 5
+    }
+  },
+  "items": {
+    "oj": {
+      "descript": "the og orange juice from 100BCE",
+      "count": 1
+    }
+  }
+}

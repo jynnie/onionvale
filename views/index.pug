@@ -1,0 +1,57 @@
+html
+  head
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    link(rel="stylesheet" href="/static/style.css")
+    script(src="/socket.io/socket.io.js")
+    script(src="/static/script.js")
+    title onionvale
+  body(onload="bottomScroll()")
+    .game-wrapper
+      .sidebar
+        ul#stats.side-wrapper
+          each detail, stat in stats
+            li.stat
+              span.stat-name= stat
+              span.stat-num(id= stat) #{detail.nowValue}/#{detail.maxValue}
+        ul#items.side-wrapper
+          each detail, item in items
+            if detail.count != 0
+              li.item
+                span.item-name= item
+                span.item-num(id= item + "Count")= detail.count
+            
+      .main-wrapper
+        .title hello, onionvale
+        .log-wrapper
+          #logs.logs
+            each log in logs
+              if log.type === "game"
+                .log.game= log.value
+              else if log.type === "update"
+                .log.update= log.value
+              else if log.type === "player"
+                .log.player= log.value
+        .player-input
+          .input-wrapper
+            .input-background
+            input(type="text" placeholder="!bang" autofocus="true" alt="player input" onkeydown="enterInput()")#play
+          input(type="submit" value="submit" alt="submit" onclick="sendInput()")#submit
+      
+      .sidebar
+        .side-title controls
+        ul
+          li !player [text]
+          li !game [text]
+          li !stat [name] [integer value]
+          li !item [name] [integer value] [optional descript]
+                
+  footer
+    p a collaborative text RPG played by 2E
+    ul
+      li 
+        a(onclick="lightToggle()") light switch
+      li 
+        a(href="") github
+  
