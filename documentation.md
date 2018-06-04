@@ -948,4 +948,8 @@ and that's live updating! this is the barebones of onionvale. as you may have no
 
 ## design evaluations
 
-// TODO: about cooldowns and system enforcements (allowed regex)
+onionvale is designed for play by 2E, a small community of friends. as such, this implementation stresses less on enforcing community rules (such as not allowing replies to one's own message or timeouts before another message). instead, i've tried to create much more of an open platform for the community to iterate, be creative, and follow an honor system. this system, of course, is much less viable when the community grows much larger. i have, however, prevented javascript and html injection, but am considering allowing some (tbd)
+
+future versions may include small enforcements of rules such as not being able to reply to one's self, cooldowns before one can reply again, and disallowing two !player calls in a row.
+
+onionvale welcomes comments and reccomendations
