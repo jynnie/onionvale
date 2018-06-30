@@ -6,11 +6,14 @@ const bodyParser = require("body-parser");
 const fs = require("fs"); // allows read/write to json
 const mongoose = require("mongoose");
 
+const config = require("./config.js");
+
 const app = express();
 const PORT = 8080;
 
 // database connection
-mongoose.connect("mongodb://localhost/onionvale");
+// mongoose.connect("mongodb://localhost/onionvale");
+mongoose.connect(config.MONGOLAB_URI);
 var connection = mongoose.connection;
 connection.on("error", console.error.bind(console, "connection error:"));
 connection.on("connected", function() {

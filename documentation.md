@@ -1310,8 +1310,34 @@ similar changes with making an `itemDescript` need to be made for items to make 
 io.emit("item update", itemName, newValue, itemDescript);
 ```
 
-#### modular user input
+#### connecting to mlab
+
+to connect to mlab, you'll first need an account on mlab. then create a new MongoDB deployment with the sandbox plan. select your relevant region and name your database the same thing as what your local database is name (so onionvale for this). you'll also need to create a user for your database in the user tab.
+
+we'll be connecting using the standard [MongoDB URI](http://docs.mlab.com/connecting/#connect-string). at the top of the page for your database there should be a line about how to connect using a driver. something that looks like
+
+> mongodb://<dbuser>:<dbpassword>@ds125041.mlab.com:25041/onionvale
+
+this is the URI used by your app to connect to the mlab database. since this contains login and password information, we're going to create a secret `config.js` file in the top level of our app:
+
+```
+const MONGOLAB_URI = "mongodb://";
+
+exports.MONGOLAB_URI = MONGOLAB_URI;
+```
+
+now to connect, in `app.js` we need the following lines
+
+```
+const config = require("./config.js");
+
+mongoose.connect(config.MONGOLAB_URI);
+```
+
+and now if you fire up your app, it should work!
+
+### modular user input
 
 simply refactored the code to make user input handler more modular so it is more readable.
 
-#### sanitizing inputs
+### sanitizing inputs
