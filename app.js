@@ -6,7 +6,7 @@ const bodyParser = require("body-parser");
 const fs = require("fs"); // allows read/write to json
 const mongoose = require("mongoose");
 
-const config = require("./config.js");
+// const config = require("./config.js");
 
 const app = express();
 const PORT = 8080;
