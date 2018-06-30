@@ -6,6 +6,7 @@ html
     link(rel="stylesheet" href="/static/style.css")
     script(src="/socket.io/socket.io.js")
     script(src="/static/script.js")
+    script(type="text/javascript" src="/static/purify.min.js")
     title onionvale
   body(onload="bottomScroll()")
     .game-wrapper
@@ -28,11 +29,11 @@ html
           #logs.logs
             each log in logs
               if log.type === "game"
-                .log.game= log.value
+                .log.game!= log.value
               else if log.type === "update"
                 .log.update= log.value
               else if log.type === "player"
-                .log.player= log.value
+                .log.player!= log.value
         .player-input
           .input-wrapper
             .input-background

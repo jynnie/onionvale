@@ -58,6 +58,11 @@ li {
   list-style-type: none;
 }
 
+img {
+  max-width: 30px !important;
+  max-height: 30px !important;
+}
+
 a {
   cursor: pointer;
   color: var(--black);

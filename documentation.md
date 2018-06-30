@@ -1341,3 +1341,26 @@ and now if you fire up your app, it should work!
 simply refactored the code to make user input handler more modular so it is more readable.
 
 ### sanitizing inputs
+
+using the [DOMPurify library](https://github.com/cure53/DOMPurify) to sanitize inputs
+
+```
+function sanitize(dirty) {
+  console.log(dirty);
+  return DOMPurify.sanitize(dirty, {
+    ALLOWED_TAGS: ["b", "em", "marquee", "img", "a"],
+    FORBID_TAGS: ["style", "script"]
+  });
+}
+```
+
+and unescaped some pug (`!=`) so that allowed tags will be fine
+
+```
+if log.type === "game"
+  .log.game!= log.value
+else if log.type === "update"
+  .log.update= log.value
+else if log.type === "player"
+  .log.player!= log.value
+```
