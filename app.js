@@ -9,7 +9,7 @@ const mongoose = require("mongoose");
 // const config = require("./config.js");
 
 const app = express();
-const PORT = 8080;
+const PORT = process.env.PORT || 8080;
 
 // database connection
 // mongoose.connect("mongodb://localhost/onionvale");
