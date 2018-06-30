@@ -28,6 +28,12 @@ add the following script to `scripts` of `package.json` so that it looks like:
 }
 ```
 
+adding this script will let us later start the app with
+
+```
+$ npm run dev
+```
+
 now we're ready to start writing our actual application
 
 ## basic app.js
@@ -559,7 +565,7 @@ function sendInput() {
 
 // sanitize inputs
 function escapeRegExp(string) {
-  return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return string.replace(/[*+?^${}()<>|[\]\\]/g, "\\$&");
 }
 ```
 
@@ -952,4 +958,360 @@ onionvale is designed for play by 2E, a small community of friends. as such, thi
 
 future versions may include small enforcements of rules such as not being able to reply to one's self, cooldowns before one can reply again, and disallowing two !player calls in a row.
 
-onionvale welcomes comments and reccomendations
+onionvale welcomes comments and recommendations
+
+## future updates
+
+### mongodb
+
+due to many free hosting services not allowing writing to the original file (heroku refreshes app states back to original which would effectively delete any changes to the JSON), i've decided to integrate in mongodb
+
+brief overview: mongo is a NoSQL database solution that stores data into collections which are more JSON/dictionary looking formats. i decided to use it for simplicity's sake as it will not be hard to move from a JSON writing format to a mongo one.
+
+#### set up
+
+first let's add mongodb as a dependency for our app
+
+```
+$ npm install mongodb --save
+```
+
+great, we'll first be using a local mongodb instance before going over how to use mlab (a free cloud instance).
+
+to run a local instance, we need to [download mongodb](https://www.mongodb.com/download-center#community) the stable community version. depending on your OS you may have to do some extra setup to get mongo working (here's a great [manual](https://docs.mongodb.org/manual/installation/)).
+
+after set up, to fire up a local instance of mongo simply run
+
+```
+$ mongod
+```
+
+to access the mongo shell run
+
+```
+$ mongo
+```
+
+now in the mongo shell you should be able to start an instance of `onionvale` by typing
+
+```
+> use onionvale
+```
+
+or if you had used the command
+
+```
+$ mongo onionvale
+```
+
+when opening the shell instead
+
+we'll be additionally using mongoose to model our data in mongo. we'll also need to install this as a dependency
+
+```
+$ npm install mongoose --save
+```
+
+#### using mongoose
+
+to connect our app let's add our dependencies into `app.js`:
+
+```
+const mongoose = require("mongoose")
+
+// Database setup
+mongoose.connect("mongodb://localhost/onionvale");
+var connection = mongoose.connection;
+connection.on("error", console.error.bind(console, "connection error:"));
+connection.on("connected", function() {
+  console.log("database connected!");
+});
+```
+
+now mongoose uses schemas to determine model formatting. we'll make a model for logs, stats, and items. in general, a schema/model is setup like
+
+```
+var schemaName = new mongoose.Schema({
+  propertyName : {type: String, required: true}
+});
+
+var modelName = mongoose.model('modelName', schemaName, 'collectionName');
+```
+
+if no `'collectionName'` is passed, it will default to a **lowercase** version of the modelName
+
+our app is gonna be one file (I know, sorry) so we'll just declare all our schemas/models in `app.js`.
+
+```
+var Logs = mongoose.model(
+  "Logs",
+  new mongoose.Schema({
+    time: { type: Date, required: true, default: Date.now() },
+    type: String,
+    value: String
+  }),
+  "Logs"
+);
+var Stats = mongoose.model(
+  "Stats",
+  new mongoose.Schema({
+    name: { type: String, required: true },
+    maxValue: mongoose.Schema.Types.Mixed,
+    nowValue: Number
+  }),
+  "Stats"
+);
+var Items = mongoose.model(
+  "Items",
+  new mongoose.Schema({
+    name: { type: String, required: true },
+    descript: String,
+    count: Number
+  }),
+  "Items"
+);
+```
+
+we can insert data into a collection from the mongo shell with a command like the following
+
+```
+> db.Logs.insert({ time: Date.now(), type: "game", value: "the adventure continues..."})
+```
+
+and all data in a collection can be listed with `db.Logs.find()`
+
+let's go ahead and insert some dummy data that follows our declared schema format into each of our collections so we can make sure we've connected to the database correctly.
+
+#### reading/writing to the db
+
+cool, now we've got to alter our code to read from our mongo collections and not our JSON. because mongo queries are async, we need to write `readGameState()` to take in a callback function. this ensures that we don't render the page (what we'll pass in as our callback) until we've read all of the game state.
+
+```
+function readGameState(callback) {
+  console.log("reading");
+
+  Logs.find({}, function(err, logs) {
+    if (err) {
+      console.log(err);
+    } else if (logs) {
+      gameState["logs"] = logs;
+    }
+
+    Stats.find({}, function(err, stats) {
+      if (err) {
+        console.log(err);
+      } else if (stats) {
+        for (s of stats) {
+          gameState["stats"][s.name] = s;
+        }
+      }
+
+      Items.find({}, function(err, items) {
+        if (err) {
+          console.log(err);
+        } else if (items) {
+          for (i of items) {
+            gameState["items"][i.name] = i;
+          }
+
+          callback();
+        }
+      });
+    });
+  });
+}
+```
+
+the way i've written this function passes on the logs objects into `gameState` which will be passed straight on to our render function (take a look below), but actually iterates through stats and items to generate a format much like our original JSON. this is to help us determine what stats/items already exist and which don't
+
+```
+var gameState = { logs: null, stats: {}, items: {} };
+
+app.get("/", function(req, res) {
+  readGameState(function() {
+    res.render("index", {
+      logs: gameState["logs"],
+      stats: gameState["stats"],
+      items: gameState["items"]
+    });
+  });
+});
+```
+
+now let's look into saving states. instead of using a `saveGameState()` function that overwrites a JSON file, we're going to integrate db updates/saves into our existing `userInput()` function. `userInput` already does a pretty good job of handling and parsing the input, we just now need to get this into an object we can save into a collection. let's start with logs, which for saving only means adding a new element (no edits). the format of `newLog` in `userInput()` is actually perfect
+
+```
+newLog = {
+  time: Date.now(),
+  type: "update",
+  value: "you now have " + newValue + " of " + maxVal + " " + statName
+};
+```
+
+we basically need to put every data object into a dictionary format that matches the schema of that collection/model and we can then simply pass it to a `modelName.create()` function to add it to a model.
+
+at the end of `userInput()`, we'll alter the last conditional to do the following instead of `saveGameState()`
+
+```
+if (typeof newLog != "undefined") {
+  io.emit("log", newLog); // send to all sockets
+  Logs.create(newLog, function(err, log) {
+    if (err) {
+      console.log(err)
+      next(err, socket);
+    }
+  })
+}
+```
+
+we'll bundle this into a function called `saveLogToGameState()` so that we can fix some async problems we'll touch on later.
+
+the `.create()` function also takes in a callback that can respond if there is an error. in general, for all newly created data objects, we use this syntax/function to add an object to a collection. so for stat for example looks like
+
+```
+if (statName in gameState["stats"]) {
+
+  ...
+
+} else {
+  var newStat = { name: statName, maxValue: "?", nowValue: newValue };
+  if (!isNaN(newMax)) {
+    newStat["maxValue"] = newMax;
+  }
+  Stats.create(newStat, function(err, stat) {
+    if (err) {
+      console.log(err);
+      next(err, socket);
+    } else {
+      console.log("saved log");
+    }
+  });
+}
+```
+
+and update item looks like
+
+```
+// update item
+if (!(itemName in gameState)) {
+  var newItem = { name: itemName, descript: undefined, count: newValue };
+
+  if (descripdex > spacedex) {
+    newItem["descript"] = newDescript;
+  }
+
+  Items.create(newItem, function(err, item) {
+    if (err) {
+      console.log(err);
+      next(err, socket);
+    }
+  });
+}
+```
+
+before we continue, you might notice we're not using callbacks. saving doesn't need to be synchronous so we aren't using callbacks.
+
+at this point, `!player` and `!game` commands work (which you should test). `!stat` and `!item` should be kinda broken, but don't worry. cause let's go into what if the stat or item already exists and how to do an update.
+
+in general, to do an update, we first need to pull the exact object from our collection, make a change, and then save it. every object has a unique id and can be _queried_ for or found by that identifier.
+
+```
+Stats.findOne(
+  { _id: mongo.ObjectId(gameState["stats"][statName].id) },
+  function(err, stat) {
+
+    ...
+
+  }
+);
+```
+
+the following lets us find one object in the `Stats` model where that object has the matching id. now in the callback function of that we can actually make the update to the object.
+
+```
+function(err, stat) {
+  stat.nowValue = newValue;
+  if (!isNaN(newMax)) {
+    stat.maxValue = newMax;
+  }
+
+  stat.save(function(err, data) {
+    if (err) {
+      console.log(err);
+      next(err, socket);
+    }
+  });
+}
+```
+
+we make changes to the `stat` object and then save it to update. simple as that. a couple of changes need to be made with `maxVal` so that our logs are correct. the reason is because mongo calls happen asynchronously and so if we change the value of `maxVal` in the aysnc function, it won't actually be changed before socket emits it. it'll look something like this (code after each save | sorry, not documenting this part terribly well)
+
+```
+if (statName in gameState["stats"]) {
+  Stats.findOne({ _id: gameState["stats"][statName].id }, function(
+    err,
+    stat
+  ) {
+    stat.nowValue = newValue;
+    maxVal = stat.maxValue;
+    if (!isNaN(newMax)) {
+      stat.maxValue = newMax;
+      maxVal = newMax;
+    }
+
+    stat.save(function(err, data) {
+      if (err) {
+        console.log(err);
+        next(err, socket);
+      }
+    });
+
+    newLog = {
+      time: Date.now(),
+      type: "update",
+      value: "you now have " + newValue + " of " + maxVal + " " + statName
+    };
+    saveLogToGameState(newLog);
+
+    io.emit("stat update", statName, newValue, maxVal);
+  });
+}
+```
+
+cool, now lets add updating for items
+
+```
+if (!(itemName in gameState)) {
+
+  ...
+
+} else {
+  Items.findOne(
+    { _id: mongo.ObjectId(gameState["items"][itemName].id) },
+    function(err, item) {
+      item.count = newValue;
+      if (descripdex > spacedex) {
+        item.descript = newDescript;
+      }
+
+      item.save(function(err, data) {
+        if (err) {
+          console.log(err);
+        }
+      });
+    }
+  );
+}
+```
+
+similar changes with making an `itemDescript` need to be made for items to make sure socket emits are rendered correctly.
+
+```
+io.emit("item update", itemName, newValue, itemDescript);
+```
+
+#### modular user input
+
+simply refactored the code to make user input handler more modular so it is more readable.
+
+#### sanitizing inputs

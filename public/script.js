@@ -122,5 +122,5 @@ function sendInput() {
 // sanitize inputs
 // citation: https://codereview.stackexchange.com/questions/153691/escape-user-input-for-use-in-js-regex
 function escapeRegExp(string) {
-  return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return string.replace(/[*+?^${}()<>|[\]\\]/g, "\\$&");
 }
