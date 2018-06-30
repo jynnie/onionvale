@@ -111,7 +111,7 @@ socket.on("err", function(err) {
 });
 
 function sendInput() {
-  var inputValue = escapeRegExp(document.getElementById("play").value);
+  var inputValue = sanitize(document.getElementById("play").value);
   console.log("Sent input: " + inputValue);
 
   socket.emit("user input", inputValue);
@@ -120,7 +120,11 @@ function sendInput() {
 }
 
 // sanitize inputs
-// citation: https://codereview.stackexchange.com/questions/153691/escape-user-input-for-use-in-js-regex
-function escapeRegExp(string) {
-  return string.replace(/[*+?^${}()<>|[\]\\]/g, "\\$&");
+// citation: https://github.com/cure53/DOMPurify
+function sanitize(dirty) {
+  console.log(dirty);
+  return DOMPurify.sanitize(dirty, {
+    ALLOWED_TAGS: ["b", "em", "marquee", "img", "a"],
+    FORBID_TAGS: ["style", "script"]
+  });
 }
