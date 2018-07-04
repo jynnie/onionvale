@@ -1,5 +1,11 @@
 // var xhttp = new XMLHttpRequest();
 var socket = io();
+var light;
+
+function init() {
+  setLight();
+  bottomScroll();
+}
 
 function bottomScroll() {
   var height = 0;
@@ -9,8 +15,27 @@ function bottomScroll() {
   logs.scrollTop = height;
 }
 
+// light switch functions
+function setLight() {
+  light = window.localStorage.getItem("light");
+  if (light == null || light === "true") {
+    light = "true";
+  } else if (light === "false") {
+    light = "false";
+    document.body.classList.add("darkness");
+  }
+}
+
 function lightToggle() {
   document.body.classList.toggle("darkness");
+
+  light = window.localStorage.getItem("light");
+  if (light == null || light === "true") {
+    light = "false";
+  } else if (light === "false") {
+    light = "true";
+  }
+  window.localStorage.setItem("light", light);
 }
 
 function enterInput() {
