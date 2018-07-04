@@ -17,7 +17,7 @@ body {
   font-family: var(--font) !important;
   color: var(--black);
   max-width: 850px;
-  width: 100vw;
+  width: calc(100vw - 20px);
   padding: 20px 10px;
   margin: auto;
   background: var(--white);
@@ -136,7 +136,7 @@ span.fade {
   display: flex;
   flex-direction: row;
   align-items: flex-end;
-  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .logs {
@@ -237,6 +237,18 @@ span.fade {
   outline: none;
 }
 
+.hamburger {
+  display: none;
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  width: 1em;
+  height: 0.15em;
+  cursor: pointer;
+  background: var(--black);
+  box-shadow: 0 5px 0 0 var(--black), 0 10px 0 0 var(--black);
+}
+
 @keyframes wipe {
   from {
     width: 0;
@@ -252,5 +264,38 @@ span.fade {
   }
   to {
     opacity: 1;
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .game-wrapper {
+    padding: 0 10px;
+    grid-template-rows: 0 auto 0;
+    grid-template-columns: unset;
+    grid-gap: 10px;
+  }
+
+  .game-wrapper.open-sidebar {
+    margin-top: 20px;
+    grid-template-rows: auto 0 auto;
+  }
+
+  .hamburger {
+    display: block;
+  }
+
+  .sidebar,
+  .main-wrapper {
+    overflow: hidden;
+  }
+
+  footer {
+    padding: 0 10px;
+    width: calc(100vw - 40px);
+  }
+
+  #footlinks li:nth-child(2),
+  #footlinks li:nth-child(3) {
+    display: none;
   }
 }
