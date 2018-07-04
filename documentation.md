@@ -1364,3 +1364,40 @@ else if log.type === "update"
 else if log.type === "player"
   .log.player!= log.value
 ```
+
+### persisting theme
+
+a great UI improvement is remembering if the user had last set the theme to light or dark. we can remember this by storing data to a localstorage item, basically a cache on each person's browser. to do so, we simply need to get the item and set it each time we turn the light on or off - and check what the last setting was saved to on first load.
+
+```
+var light;
+
+function init() {
+  setLight();
+  bottomScroll();
+}
+
+function setLight() {
+  light = window.localStorage.getItem("light");
+  if (light == null || light === "true") {
+    light = "true";
+  } else if (light === "false") {
+    light = "false";
+    document.body.classList.add("darkness");
+  }
+}
+
+function lightToggle() {
+  document.body.classList.toggle("darkness");
+
+  light = window.localStorage.getItem("light");
+  if (light == null || light === "true") {
+    light = "false";
+  } else if (light === "false") {
+    light = "true";
+  }
+  window.localStorage.setItem("light", light);
+}
+```
+
+and now if we run `init()` onload we'll remember the theme the user last set it to
