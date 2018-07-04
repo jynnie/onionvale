@@ -19,6 +19,12 @@ function enterInput() {
   }
 }
 
+// mobile sidebar handler
+function toggleSidebar() {
+  let wrap = document.getElementById("wrapper");
+  wrap.classList.toggle("open-sidebar");
+}
+
 // live log updates
 socket.on("log", function(log) {
   var logs = document.getElementById("logs");

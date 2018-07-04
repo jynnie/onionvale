@@ -12,7 +12,6 @@ const app = express();
 const PORT = process.env.PORT || 8080;
 
 // database connection
-// mongoose.connect("mongodb://localhost/onionvale");
 mongoose.connect(process.env.MONGOLAB_URI || config.MONGOLAB_URI);
 var connection = mongoose.connection;
 connection.on("error", console.error.bind(console, "connection error:"));

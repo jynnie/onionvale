@@ -9,7 +9,8 @@ html
     script(type="text/javascript" src="/static/purify.min.js")
     title onionvale
   body(onload="bottomScroll()")
-    .game-wrapper
+    .hamburger(onclick="toggleSidebar()")
+    .game-wrapper#wrapper
       .sidebar
         ul#stats.side-wrapper
           each detail, stat in stats
@@ -50,7 +51,7 @@ html
                 
   footer
     p a collaborative text RPG played by 2E
-    ul
+    ul#footlinks
       li 
         a(onclick="lightToggle()") light switch
       li 
