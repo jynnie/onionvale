@@ -44,10 +44,14 @@ html
       .sidebar
         .side-title controls
         ul
-          li !player [text]
-          li !game [text]
-          li !stat [name] [integer value] [max value]
-          li !item [name] [integer value] [optional descript]
+          li.tooltip !player [text] 
+            span.tooltiptext A player command (text preceeded by >)
+          li.tooltip !game [text]
+            span.tooltiptext A response to a command
+          li.tooltip !stat [name] [integer value] [max value]
+            span.tooltiptext Adds or modifies a stat
+          li.tooltip !item [name] [integer value] [optional descript]
+            span.tooltiptext Adds or changes the quantity an item
                 
   footer
     p a collaborative text RPG played by 2E
