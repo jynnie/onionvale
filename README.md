@@ -2,7 +2,7 @@
 
 a simple collaborative text-based adventure platform designed for play be 2E
 
-for any feature requests or bug reports, open issues for this repo
+for any feature requests or bug reports, [open issues](https://github.com/jynnie/onionvale/issues) for this repo
 
 for a comprehensive documentation on how I designed/developed this application, check out 
 [documentation.md](https://github.com/jynnie/onionvale/blob/master/documentation.md)
@@ -18,6 +18,10 @@ and html injection, but with certain exceptions
 
 ## Development
 
-1. install Node.js
+1. install [Node.js](https://nodejs.org/en/download/) and [MongoDB](https://www.mongodb.com/download-center#community)
 2. `npm install` dependencies
-2. `npm start` to run local instance on `localhost:8080`
+3. `cp example.config.js config.js`
+4. set the appropraite environment variables in `config.js`
+4. `mkdir db`
+4. `mongod --dbpath db & # Have the mongo daemon run in the background`
+4. `npm start` to run local instance on `localhost:8080`

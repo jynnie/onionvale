@@ -249,6 +249,22 @@ span.fade {
   box-shadow: 0 5px 0 0 var(--black), 0 10px 0 0 var(--black);
 }
 
+.tooltip {
+  position: relative;
+} 
+
+.tooltip .tooltiptext {
+  display: none;
+  width: 140%;
+  padding-left: 0.5em;
+  font-style: italic;
+  z-index: 1;
+}
+
+.tooltip:hover .tooltiptext {
+  display: inline-block;
+}
+
 @keyframes wipe {
   from {
     width: 0;
