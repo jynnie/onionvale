@@ -364,7 +364,7 @@ function postToDiscord(cmd, val) {
 
   let options = {
     method: "POST",
-    url: config.DISCORD_WEBHOOK,
+    url: config.DISCORD_WEBHOOK || process.env.DISCORD_WEBHOOK,
     headers: {
       "content-type": "application/json"
     },
