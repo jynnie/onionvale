@@ -5,6 +5,7 @@ const pug = require("pug"); // view engine
 const bodyParser = require("body-parser");
 const fs = require("fs"); // allows read/write to json
 const mongoose = require("mongoose");
+const request = require("request"); // makes POST requests to Discord
 
 const config = require("./config.js");
 
@@ -92,9 +93,11 @@ function userInput(input, socket) {
   if (cmd === "!player") {
     newLog = { time: Date.now(), type: "player", value: val };
     saveLogToGameState(newLog);
+    postToDiscord(cmd, val);
   } else if (cmd === "!game") {
     newLog = { time: Date.now(), type: "game", value: val };
     saveLogToGameState(newLog);
+    postToDiscord(cmd, val);
   } else if (cmd === "!stat") {
     statInput(val, socket);
   } else if (cmd === "!item") {
@@ -136,12 +139,14 @@ function statInput(val, socket) {
         }
       });
 
+	  let value = "you now have " + newValue + " of " + maxVal + " " + statName;
       newLog = {
         time: Date.now(),
         type: "update",
-        value: "you now have " + newValue + " of " + maxVal + " " + statName
+        value: value
       };
-
+      
+      postToDiscord("!stat", value);
       saveLogToGameState(newLog);
       io.emit("stat update", statName, newValue, maxVal);
       console.log("saved stat");
@@ -159,12 +164,14 @@ function statInput(val, socket) {
       }
     });
 
+	let value = "you now have " + newValue + " of " + maxVal + " " + statName;
     newLog = {
       time: Date.now(),
       type: "update",
-      value: "you now have " + newValue + " of " + maxVal + " " + statName
+      value: value
     };
-
+	
+	postToDiscord("!stat", value);
     saveLogToGameState(newLog);
     io.emit("stat update", statName, newValue, maxVal);
     console.log("saved stat");
@@ -225,12 +232,14 @@ function itemInput(val, socket) {
     );
   }
 
+  let value = "you now have " + newValue + " of " + itemName
   newLog = {
     time: Date.now(),
     type: "update",
-    value: "you now have " + newValue + " of " + itemName
+    value: value
   };
 
+  postToDiscord("!item", value)
   saveLogToGameState(newLog);
   io.emit("item update", itemName, newValue, itemDescript);
   console.log("saved item");
@@ -289,6 +298,69 @@ function saveLogToGameState(newLog) {
       }
     });
   }
+}
+
+/**
+ * Replaces <b> and <em> tags with the appropriate Discord equivalents. For
+ * <img> and <a> tags, removes the HTML and just leaves the source material
+ * (the URL the <a> went to or the URL of the <img>)
+ * Currently unable to process <marquee> tags so this function just posts them 
+ * as plaintext.
+ */
+function styleMsg(msg) {
+  return msg.replace(/<b>/gi, "**").replace(/<\/b>/gi, "**")
+		    .replace(/<em>/gi, "_").replace(/<\/em>/gi, "_")
+	        .replace(/<a href=".*">.*<\/a>/gi, function(str) {
+			  return str.replace(/<a href="/i, '(').replace('">', ') ').replace(/<\/a>/i, '')})
+			.replace(/<a href='.*'>.*<\/a>/gi, function(str) {
+			  return str.replace(/<a href='/i, '').replace("'>", ' ').replace(/<\/a>/i, '')})
+			.replace(/<img src=".*"\s*\/?\s*>/gi, function(str) {
+			  return str.replace(/<img src="/i, '').replace(/\s*\/?\s*">/gi, '')})
+			.replace(/<img src='.*'\s*\/?\s*>/gi, function(str) {
+			  return str.replace(/<img src="/i, '').replace(/\s*\/?\s*'>/gi, '')})
+			.replace(/<img src='.*'>.*<\/img>/gi, function(str) {
+			  return str.replace(/<img src='/i, '').replace("'>", '').replace(/<\/img>/i, '')})
+			.replace(/<img src=".*">.*<\/img>/gi, function(str) {
+			  return str.replace(/<img src="/i, '').replace('">', '').replace(/<\/img>/i, '')})
+}
+
+/**
+ * Takes the user's input and POSTs it to the DISCORD_WEBHOOK
+ *   cmd: String, the command type
+ *   val: String, the rest of the user's input
+ */
+function postToDiscord(cmd, val) {
+  let msg = styleMsg(val);
+  console.log("cmd", cmd, "val", val, "msg", msg);
+  if (cmd === "!player") {
+    msg = "**Player**: > " + msg;
+  } else if (cmd === "!game") {
+    msg = "**Game**: " + msg;
+  } else if (cmd === "!stat") {
+    msg = "**Stat**: _" + msg + "_";
+  } else if (cmd === "!item") {
+    msg = "**Item**: _" + msg + "_";
+  }
+
+  let options = {
+    method: "POST",
+    url: config.DISCORD_WEBHOOK,
+	headers: {
+      "content-type": "application/json"
+    },
+	body: JSON.stringify({
+      content: msg
+    })
+  };
+
+  request(
+	options,
+    function (err, res, body) {
+      if (!err && res.statusCode == 200) {
+        console.log(body)
+      }
+    }
+  );
 }
 
 // socket specific error handling of inputs
