@@ -14,9 +14,10 @@ html
       .sidebar
         ul#stats.side-wrapper
           each detail, stat in stats
-            li.stat
-              span.stat-name= stat
-              span.stat-num(id= stat) #{detail.nowValue}/#{detail.maxValue}
+            if detail.maxValue != 0
+              li.stat
+                span.stat-name= stat
+                span.stat-num(id= stat) #{detail.nowValue}/#{detail.maxValue}
         ul#items.side-wrapper
           each detail, item in items
             if detail.count != 0
