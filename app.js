@@ -13,7 +13,7 @@ const app = express();
 const PORT = 8080;
 
 // database connection
-//mongoose.connect("mongodb://localhost/onionvale");
+// mongoose.connect("mongodb://localhost/onionvale");
 mongoose.connect(config.MONGOLAB_URI);
 var connection = mongoose.connection;
 connection.on("error", console.error.bind(console, "connection error:"));
@@ -103,7 +103,7 @@ function userInput(input, socket) {
   } else if (cmd === "!item") {
     itemInput(val, socket);
   } else {
-    return next("not a valid command", socket);
+    return error("not a valid command", socket);
   }
 }
 
@@ -116,7 +116,7 @@ function statInput(val, socket) {
 
   // check if integer was parsed
   if (isNaN(newValue)) {
-    return next("not a valid integer value for stat", socket);
+    return error("not a valid integer value for stat", socket);
   }
 
   // update value
@@ -135,17 +135,17 @@ function statInput(val, socket) {
       stat.save(function(err, data) {
         if (err) {
           console.log(err);
-          next(err, socket);
+          error(err, socket);
         }
       });
 
-	  let value = "you now have " + newValue + " of " + maxVal + " " + statName;
+      let value = "you now have " + newValue + " of " + maxVal + " " + statName;
       newLog = {
         time: Date.now(),
         type: "update",
         value: value
       };
-      
+
       postToDiscord("!stat", value);
       saveLogToGameState(newLog);
       io.emit("stat update", statName, newValue, maxVal);
@@ -160,18 +160,18 @@ function statInput(val, socket) {
     Stats.create(newStat, function(err, stat) {
       if (err) {
         console.log(err);
-        next(err, socket);
+        error(err, socket);
       }
     });
 
-	let value = "you now have " + newValue + " of " + maxVal + " " + statName;
+    let value = "you now have " + newValue + " of " + maxVal + " " + statName;
     newLog = {
       time: Date.now(),
       type: "update",
       value: value
     };
-	
-	postToDiscord("!stat", value);
+
+    postToDiscord("!stat", value);
     saveLogToGameState(newLog);
     io.emit("stat update", statName, newValue, maxVal);
     console.log("saved stat");
@@ -195,7 +195,7 @@ function itemInput(val, socket) {
 
   // check if integer was parsed
   if (isNaN(newValue)) {
-    return next("not a valid integer value for item", socket);
+    return error("not a valid integer value for item", socket);
   }
 
   // update item
@@ -210,7 +210,7 @@ function itemInput(val, socket) {
     Items.create(newItem, function(err, item) {
       if (err) {
         console.log(err);
-        next(err, socket);
+        error(err, socket);
       }
     });
   } else {
@@ -232,14 +232,14 @@ function itemInput(val, socket) {
     );
   }
 
-  let value = "you now have " + newValue + " of " + itemName
+  let value = "you now have " + newValue + " of " + itemName;
   newLog = {
     time: Date.now(),
     type: "update",
     value: value
   };
 
-  postToDiscord("!item", value)
+  postToDiscord("!item", value);
   saveLogToGameState(newLog);
   io.emit("item update", itemName, newValue, itemDescript);
   console.log("saved item");
@@ -292,7 +292,7 @@ function saveLogToGameState(newLog) {
     Logs.create(newLog, function(err, log) {
       if (err) {
         console.log(err);
-        next(err, socket);
+        error(err, socket);
       } else {
         console.log("saved log");
       }
@@ -304,24 +304,45 @@ function saveLogToGameState(newLog) {
  * Replaces <b> and <em> tags with the appropriate Discord equivalents. For
  * <img> and <a> tags, removes the HTML and just leaves the source material
  * (the URL the <a> went to or the URL of the <img>)
- * Currently unable to process <marquee> tags so this function just posts them 
+ * Currently unable to process <marquee> tags so this function just posts them
  * as plaintext.
  */
 function styleMsg(msg) {
-  return msg.replace(/<b>/gi, "**").replace(/<\/b>/gi, "**")
-		    .replace(/<em>/gi, "_").replace(/<\/em>/gi, "_")
-	        .replace(/<a href=".*">.*<\/a>/gi, function(str) {
-			  return str.replace(/<a href="/i, '(').replace('">', ') ').replace(/<\/a>/i, '')})
-			.replace(/<a href='.*'>.*<\/a>/gi, function(str) {
-			  return str.replace(/<a href='/i, '').replace("'>", ' ').replace(/<\/a>/i, '')})
-			.replace(/<img src=".*"\s*\/?\s*>/gi, function(str) {
-			  return str.replace(/<img src="/i, '').replace(/\s*\/?\s*">/gi, '')})
-			.replace(/<img src='.*'\s*\/?\s*>/gi, function(str) {
-			  return str.replace(/<img src="/i, '').replace(/\s*\/?\s*'>/gi, '')})
-			.replace(/<img src='.*'>.*<\/img>/gi, function(str) {
-			  return str.replace(/<img src='/i, '').replace("'>", '').replace(/<\/img>/i, '')})
-			.replace(/<img src=".*">.*<\/img>/gi, function(str) {
-			  return str.replace(/<img src="/i, '').replace('">', '').replace(/<\/img>/i, '')})
+  return msg
+    .replace(/<b>/gi, "**")
+    .replace(/<\/b>/gi, "**")
+    .replace(/<em>/gi, "_")
+    .replace(/<\/em>/gi, "_")
+    .replace(/<a href=".*">.*<\/a>/gi, function(str) {
+      return str
+        .replace(/<a href="/i, "(")
+        .replace('">', ") ")
+        .replace(/<\/a>/i, "");
+    })
+    .replace(/<a href='.*'>.*<\/a>/gi, function(str) {
+      return str
+        .replace(/<a href='/i, "")
+        .replace("'>", " ")
+        .replace(/<\/a>/i, "");
+    })
+    .replace(/<img src=".*"\s*\/?\s*>/gi, function(str) {
+      return str.replace(/<img src="/i, "").replace(/\s*\/?\s*">/gi, "");
+    })
+    .replace(/<img src='.*'\s*\/?\s*>/gi, function(str) {
+      return str.replace(/<img src="/i, "").replace(/\s*\/?\s*'>/gi, "");
+    })
+    .replace(/<img src='.*'>.*<\/img>/gi, function(str) {
+      return str
+        .replace(/<img src='/i, "")
+        .replace("'>", "")
+        .replace(/<\/img>/i, "");
+    })
+    .replace(/<img src=".*">.*<\/img>/gi, function(str) {
+      return str
+        .replace(/<img src="/i, "")
+        .replace('">', "")
+        .replace(/<\/img>/i, "");
+    });
 }
 
 /**
@@ -345,29 +366,34 @@ function postToDiscord(cmd, val) {
   let options = {
     method: "POST",
     url: config.DISCORD_WEBHOOK,
-	headers: {
+    headers: {
       "content-type": "application/json"
     },
-	body: JSON.stringify({
+    body: JSON.stringify({
       content: msg
     })
   };
 
-  request(
-	options,
-    function (err, res, body) {
-      if (!err && res.statusCode == 200) {
-        console.log(body)
-      }
+  request(options, function(err, res, body) {
+    if (!err && res.statusCode == 200) {
+      console.log(body);
     }
-  );
+  });
 }
 
 // socket specific error handling of inputs
-function next(err, socket) {
+function error(err, socket) {
   socket.emit("err", err);
   console.log(new Error(err));
 }
+
+// automatic redirecting to https
+// credit: https://jaketrent.com/post/https-redirect-node-heroku/
+app.use((req, res, next) => {
+  if (req.header("x-forwarded-proto") !== "https") {
+    res.redirect(`https://${req.header("host")}${req.url}`);
+  } else next();
+});
 
 // serving application
 http.listen(PORT, function() {
