@@ -6,11 +6,15 @@ const bodyParser = require("body-parser");
 const fs = require("fs"); // allows read/write to json
 const mongoose = require("mongoose");
 const request = require("request"); // makes POST requests to Discord
+const sslRedirect = require("heroku-ssl-redirect"); // forces ssl on heroku
 
 // const config = require("./config.js");
 
 const app = express();
 const PORT = process.env.PORT || 8080;
+
+// forces heroku to redirect to ssl
+app.use(sslRedirect());
 
 // database connection
 mongoose.connect(process.env.MONGOLAB_URI || config.MONGOLAB_URI);
@@ -385,14 +389,6 @@ function error(err, socket) {
   socket.emit("err", err);
   console.log(new Error(err));
 }
-
-// automatic redirecting to https
-// credit: https://jaketrent.com/post/https-redirect-node-heroku/
-app.use((req, res, next) => {
-  if (req.header("x-forwarded-proto") !== "https") {
-    res.redirect(`https://${req.header("host")}${req.url}`);
-  } else next();
-});
 
 // serving application
 http.listen(PORT, function() {
