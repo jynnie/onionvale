@@ -102,7 +102,7 @@ function userInput(input, socket) {
   } else if (cmd === "!item") {
     itemInput(val, socket);
   } else {
-    return next("not a valid command", socket);
+    return error("not a valid command", socket);
   }
 }
 
@@ -115,7 +115,7 @@ function statInput(val, socket) {
 
   // check if integer was parsed
   if (isNaN(newValue)) {
-    return next("not a valid integer value for stat", socket);
+    return error("not a valid integer value for stat", socket);
   }
 
   // update value
@@ -134,7 +134,7 @@ function statInput(val, socket) {
       stat.save(function(err, data) {
         if (err) {
           console.log(err);
-          next(err, socket);
+          error(err, socket);
         }
       });
 
@@ -159,7 +159,7 @@ function statInput(val, socket) {
     Stats.create(newStat, function(err, stat) {
       if (err) {
         console.log(err);
-        next(err, socket);
+        error(err, socket);
       }
     });
 
@@ -194,7 +194,7 @@ function itemInput(val, socket) {
 
   // check if integer was parsed
   if (isNaN(newValue)) {
-    return next("not a valid integer value for item", socket);
+    return error("not a valid integer value for item", socket);
   }
 
   // update item
@@ -209,7 +209,7 @@ function itemInput(val, socket) {
     Items.create(newItem, function(err, item) {
       if (err) {
         console.log(err);
-        next(err, socket);
+        error(err, socket);
       }
     });
   } else {
@@ -291,7 +291,7 @@ function saveLogToGameState(newLog) {
     Logs.create(newLog, function(err, log) {
       if (err) {
         console.log(err);
-        next(err, socket);
+        error(err, socket);
       } else {
         console.log("saved log");
       }
@@ -381,10 +381,18 @@ function postToDiscord(cmd, val) {
 }
 
 // socket specific error handling of inputs
-function next(err, socket) {
+function error(err, socket) {
   socket.emit("err", err);
   console.log(new Error(err));
 }
+
+// automatic redirecting to https
+// credit: https://jaketrent.com/post/https-redirect-node-heroku/
+app.use((req, res, next) => {
+  if (req.header("x-forwarded-proto") !== "https") {
+    res.redirect(`https://${req.header("host")}${req.url}`);
+  } else next();
+});
 
 // serving application
 http.listen(PORT, function() {
