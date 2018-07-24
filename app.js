@@ -74,7 +74,7 @@ app.set("view engine", "pug");
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-//routes
+// routes
 app.get("/", function(req, res) {
   readGameState(function() {
     res.render("index", {
@@ -312,6 +312,8 @@ function saveLogToGameState(newLog) {
  */
 function styleMsg(msg) {
   return msg
+    .replace(/_/gi, "\\_")
+    .replace(/\*/gi, "\\*")
     .replace(/<b>/gi, "**")
     .replace(/<\/b>/gi, "**")
     .replace(/<em>/gi, "_")
