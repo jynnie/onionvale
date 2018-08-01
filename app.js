@@ -89,21 +89,28 @@ function userInput(input, socket) {
   var cmd = input.substring(0, input.indexOf(" "));
   var val = input.substring(input.indexOf(" ") + 1);
   var newLog = undefined;
-
-  if (cmd === "!player") {
-    newLog = { time: Date.now(), type: "player", value: val };
-    saveLogToGameState(newLog);
-    postToDiscord(cmd, val);
-  } else if (cmd === "!game") {
-    newLog = { time: Date.now(), type: "game", value: val };
-    saveLogToGameState(newLog);
-    postToDiscord(cmd, val);
-  } else if (cmd === "!stat") {
-    statInput(val, socket);
-  } else if (cmd === "!item") {
-    itemInput(val, socket);
-  } else {
-    return error("not a valid command", socket);
+  switch (cmd) {
+    case "!player":
+      newLog = { time: Date.now(), type: "player", value: val };
+      saveLogToGameState(newLog);
+      postToDiscord(cmd, val);
+      break;
+    case "!game":
+      newLog = { time: Date.now(), type: "game", value: val };
+      saveLogToGameState(newLog);
+      postToDiscord(cmd, val);
+      break;
+    case "!stat":
+      statInput(val, socket);
+      break;
+    case "!item":
+      itemInput(val, socket);
+      break;
+    case "!roll":
+      rollInput(val, socket);
+      break;
+    default:
+      return error("not a valid command", socket);
   }
 }
 
@@ -245,6 +252,61 @@ function itemInput(val, socket) {
   console.log("saved item");
 }
 
+/**
+ * Rolls numDice numSides-sided dice, where n and d are both provided by the
+ * player. numDice defaults to 1.
+ *
+ * !roll [numSides]
+ * !roll [numSides] [numDice]
+ */
+function rollInput(val, socket) {
+  let numDice = 1;
+  let numSides = 6;
+  let rngPuts = val.trim().split(" ");
+
+  numSides = parseInt(rngPuts[0]);
+  if (isNaN(numSides) || numSides <= 1) {
+    // no D0, D1, or negative-sided dice pls
+    return error("not a valid integer number of sides", socket);
+  }
+
+  if (rngPuts.length >= 2) {
+    numDice = parseInt(rngPuts[1]);
+    if (isNaN(numDice) || numDice <= 0) {
+      // no negative number of dice pls
+      return error("not a valid integer number of dice", socket);
+    } else if (numDice > 20) {
+      // only a reasonable number of dice pls
+      return error("too many dice", socket);
+    }
+
+  }
+
+  let rolls = rollDice(numSides, numDice);
+  let value = "you rolled " + (numDice > 1? numDice : "a") + " D" + numSides + (numDice > 1? "s" : "");
+  value += " and " + (numDice > 1 ? "they" : "it") + " landed on ";
+  rolls.forEach(function(res) {
+    value += res + ", ";
+  });
+
+  // format message
+  if (numDice > 1) {
+    let lastRoll = rolls[numDice-1];
+    value = value.substring(0, value.length - (2 + String(lastRoll).length)) + "and " + lastRoll;
+  } else {
+    value = value.substring(0, value.length - 2);
+  }
+
+  newLog = {
+    time: Date.now(),
+  type: "update",
+  value: value
+  };
+
+  postToDiscord("!roll", value);
+  saveLogToGameState(newLog);
+}
+
 // socket connection
 io.on("connection", function(socket) {
   console.log("a user connected");
@@ -355,14 +417,22 @@ function styleMsg(msg) {
 function postToDiscord(cmd, val) {
   let msg = styleMsg(val);
   console.log("cmd", cmd, "val", val, "msg", msg);
-  if (cmd === "!player") {
-    msg = "**Player**: > " + msg;
-  } else if (cmd === "!game") {
-    msg = "**Game**: " + msg;
-  } else if (cmd === "!stat") {
-    msg = "**Stat**: _" + msg + "_";
-  } else if (cmd === "!item") {
-    msg = "**Item**: _" + msg + "_";
+  switch (cmd) {
+    case "!player":
+      msg = "**Player**: > " + msg;
+      break;
+    case "!game":
+      msg = "**Game**: " + msg;
+      break;
+    case "!stat":
+      msg = "**Stat**: _" + msg + "_";
+      break;
+    case "!item":
+      msg = "**Item**: _" + msg + "_";
+      break;
+    case "!roll":
+      msg = ":game_die: _" + msg + "_ :game_die:";
+      break;
   }
 
   let options = {
@@ -381,6 +451,23 @@ function postToDiscord(cmd, val) {
       console.log(body);
     }
   });
+}
+
+/**
+ * Rolls numDice numSides-sided dice.
+ *   numSides: int, the number of sides on each die. Defaults to 6.
+ *   numDice: int, the number of dice to roll. Defaults to 1.
+ *
+ *   Returns an array of ints containing the result of each roll.
+ */
+function rollDice(numSides, numDice) {
+  let results = [];
+
+  for (var i = 0; i < numDice; i++) {
+    results.push(Math.floor(Math.random() * numSides) + 1);
+  }
+
+  return results;
 }
 
 // socket specific error handling of inputs
