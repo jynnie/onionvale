@@ -22,6 +22,13 @@ and html injection, but with certain exceptions
 2. `npm install` dependencies
 3. `cp example.config.js config.js`
 4. set the appropraite environment variables in `config.js`
-4. `mkdir db`
-4. `mongod --dbpath db & # Have the mongo daemon run in the background`
-4. `npm start` to run local instance on `localhost:8080`
+5. `mkdir db`
+6. `mongod --dbpath db & # Have the mongo daemon run in the background`
+7. `npm start` to run local instance on `localhost:8080`
+
+## Deploying with Docker
+
+1. obtain a copy of the production `config.js` from an onionvale developer
+2. `docker build -t onionvale .`
+3. `docker run onionvale`
+4. onionvale will run on port 80. to run in the background, use `docker run -d onionvale`

@@ -10,7 +10,7 @@ const request = require("request"); // makes POST requests to Discord
 const config = require("./config.js");
 
 const app = express();
-const PORT = 8080;
+const PORT = process.env.ONIONVALE_PRODUCTION ? 80 : 8080;
 
 // database connection
 // mongoose.connect("mongodb://localhost/onionvale");
